@@ -51,7 +51,6 @@ public class miHoYoSoup {
     public static void main(String[] args) {
         miHoYoSoup miHoYoSoup = new miHoYoSoup();
         String url = getURL();
-        //System.out.println(url);
         try {
             Map<String, List<ItemEntity>> ItemEntityMap = miHoYoSoup.getAllItem(url);
             miHoYoSoup.postprocess(ItemEntityMap);

@@ -8,6 +8,7 @@ import org.redtea.GUI.Controller.label;
 import org.redtea.Genshin.ItemEntity;
 import org.redtea.Genshin.addLogs;
 import org.redtea.Genshin.miHoYoSoup;
+import org.redtea.resourceUpdate.Main;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
@@ -49,6 +50,7 @@ public class MainWindow {
     private JProgressBar normalPool;
     private JProgressBar UPPool;
     private JProgressBar weaponPool;
+    private JButton resourcesUpdateButton;
     private int[] ints;
     private List<ItemEntity> fifthStarList;
     private label fifth_star_percent;
@@ -210,6 +212,13 @@ public class MainWindow {
                 }
             }
         });
+
+        resourcesUpdateButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                Main.start();
+            }
+        });
     }
 
     public static List<ItemEntity> getItemEntityList() {
@@ -225,6 +234,9 @@ public class MainWindow {
         String path = new File("").getAbsolutePath() + "\\src\\main\\resources\\fonts\\Genshin.ttf";
         InitGlobalFont(label.getSelfDefinedFont(path, 16));
         MainWindow mainWindow = new MainWindow();
+        mainWindow.StartButton.setFont(label.getSelfDefinedFont(path, 20));
+        mainWindow.SubmitButton.setFont(label.getSelfDefinedFont(path, 20));
+        mainWindow.resourcesUpdateButton.setFont(label.getSelfDefinedFont(path, 20));
         mainWindow.setUI();
     }
 
@@ -266,19 +278,6 @@ public class MainWindow {
         detailsInScroll = new JPanel(new GridBagLayout());
 
         detailsInScroll.setOpaque(false);
-        //设置总览和详情的背景图
-/*        general = new JPanel() {
-            public void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.drawImage(icon.getImage(), 0, 0, getWidth(), getHeight(), icon.getImageObserver());
-            }
-        };
-        details = new JPanel() {
-            public void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                g.drawImage(icon.getImage(), 0, 0, getWidth(), getHeight(), icon.getImageObserver());
-            }
-        };*/
         //设置字体和选项卡文字
         path = new File("").getAbsolutePath() + "\\src\\main\\resources\\fonts\\Genshin.ttf";
         MainTab.setFont(label.getSelfDefinedFont(path, 18));
@@ -297,29 +296,6 @@ public class MainWindow {
         //设置总览的布局管理器等
         general.setOpaque(true);
         general.setVisible(true);
-        //general.setLayout(new GridLayout(0, 2));
-/*        total_num = new label("抽卡总数:");
-        total_weapon = new label("武器总数:");
-        total_character = new label("角色总数:");
-        fifth_star = new label("五星数:");
-        fifth_star_percent = new label("五星概率:");
-        fourth_star = new label("四星数:");
-        fourth_star_percent = new label("四星概率:");
-        normal_pool = new label("常驻池已垫  发");
-        character_pool = new label("角色池已垫  发");
-        weapon_pool = new label("武器池已垫  发");*/
-        //在总览里显示一些label
-/*        general.add(total_num);
-        general.add(total_weapon);
-        general.add(total_character);
-        general.add(fifth_star);
-        general.add(fifth_star_percent);
-        general.add(fourth_star);
-        general.add(fourth_star_percent);
-        general.add(normal_pool);
-        general.add(character_pool);
-        general.add(weapon_pool);*/
-
 
         frame.setContentPane(root);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -408,7 +384,7 @@ public class MainWindow {
         MainTab.setTabPlacement(2);
         panel1.add(MainTab, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(950, 650), null, 0, false));
         Search = new JPanel();
-        Search.setLayout(new GridLayoutManager(2, 1, new Insets(0, 0, 0, 0), -1, -1));
+        Search.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
         Search.setOpaque(false);
         Search.setPreferredSize(new Dimension(-1, -1));
         MainTab.addTab("抽卡查询", Search);
@@ -487,7 +463,12 @@ public class MainWindow {
         if (StartButtonFont != null) StartButton.setFont(StartButtonFont);
         StartButton.setHorizontalTextPosition(11);
         StartButton.setText("开始查询");
-        Search.add(StartButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        Search.add(StartButton, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        resourcesUpdateButton = new JButton();
+        Font resourcesUpdateButtonFont = this.$$$getFont$$$("HYWenHei-85W", -1, 20, resourcesUpdateButton.getFont());
+        if (resourcesUpdateButtonFont != null) resourcesUpdateButton.setFont(resourcesUpdateButtonFont);
+        resourcesUpdateButton.setText("资源更新");
+        Search.add(resourcesUpdateButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         AddLogs = new JPanel();
         AddLogs.setLayout(new GridLayoutManager(7, 4, new Insets(0, 0, 0, 0), -1, -1));
         AddLogs.setOpaque(false);
