@@ -5,6 +5,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.redtea.EasyExcel.util.TestFileUtil;
 import org.redtea.GUI.MainWindow;
+import org.redtea.Utils.progressCount;
 import org.redtea.getUrl.getUrl;
 
 import java.io.BufferedReader;
@@ -34,6 +35,7 @@ public class miHoYoSoup {
     }
 
     private static int count = 0;
+    private static int countEnd = 10;
     public miHoYoSoup() {
 
     }
@@ -71,6 +73,14 @@ public class miHoYoSoup {
             System.out.println("当前url已过期，请点击游戏内的历史记录后重新运行。");
         }
 
+    }
+
+    public static int getCountEnd() {
+        return countEnd;
+    }
+
+    public static void setCountEnd(int countEnd){
+        miHoYoSoup.countEnd = countEnd;
     }
 
     public int[] getResultIntList() {
@@ -168,13 +178,24 @@ public class miHoYoSoup {
                     if (i < 3) {
                         System.out.println("查询卡池" + gachatypes[i + 1] + "中...");
                         switch (i){
-                            case 0 -> count = 10;
-                            case 1 -> count = 20;
-                            case 2 -> count = 80;
+                            case 0 -> {
+                                count = 10;
+                                countEnd=20;
+                            }
+                            case 1 -> {
+                                count = 20;
+                                countEnd=80;
+                            }
+                            case 2 -> {
+                                count = 80;
+                                countEnd=95;
+                            }
                         }
+                        System.out.println(count);
                     } else {
                         System.out.println();
                         count = 95;
+                        countEnd=100;
                     }
                     break;
                 }

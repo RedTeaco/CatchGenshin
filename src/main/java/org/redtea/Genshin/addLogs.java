@@ -161,7 +161,12 @@ public class addLogs {
     }
 
     public List<ItemEntity> getLogData() {
-        List<ItemEntity> itemEntities = readExcel(dataFilename).get("AddLog");
+        List<ItemEntity> itemEntities = null;
+        try{
+            itemEntities = readExcel(dataFilename).get("AddLog");
+        }catch (NullPointerException ignored){
+            return null;
+        }
         List<ItemEntity> resultList = new ArrayList<>();
         for (ItemEntity item : itemEntities) {
             if (item.getRank_type().equals("5")) {

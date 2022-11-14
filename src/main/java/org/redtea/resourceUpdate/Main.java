@@ -7,6 +7,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Main {
+    public static int getCount() {
+        return count;
+    }
+
+    public static void setCount(int count) {
+        Main.count = count;
+    }
+
+    private static int count = 0;
+    private static int countEnd = 15;
     public static void start(){
         String html = null;
         String htmlWeapon = null;
@@ -18,24 +28,37 @@ public class Main {
         }catch (IOException e){
             //e.printStackTrace();
         }
+        count = 15;
+        countEnd = 20;
         mapAvatar = Utils.getAvatarUrl(html);
+        count = 20;
+        countEnd=25;
         mapWeapon = Utils.getWeaponUrl(htmlWeapon);
+        count = 25;
+        countEnd = 65;
         for (String key:mapAvatar.keySet()){
             File file = new File(Utils.getResourcesPath()+"characters\\"+key);
             if (!file.exists()){
                 Utils.downPictor(mapAvatar.get(key),Utils.getResourcesPath()+"characters\\"+key);
-            }else {
-                continue;
             }
         }
+        count = 65;
+        countEnd = 100;
         for (String key:mapWeapon.keySet()){
             File file = new File(Utils.getResourcesPath()+"weapons\\"+key);
             if (!file.exists()){
                 Utils.downPictor(mapWeapon.get(key),Utils.getResourcesPath()+"weapons\\"+key);
-            }else {
-                continue;
             }
         }
+        count = 100;
+    }
+
+    public static int getCountEnd() {
+        return countEnd;
+    }
+
+    public static void setCountEnd(int countEnd) {
+        Main.countEnd = countEnd;
     }
 }
 

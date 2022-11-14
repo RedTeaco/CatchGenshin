@@ -7,10 +7,12 @@ import com.intellij.uiDesigner.core.Spacer;
 import org.redtea.GUI.Controller.label;
 import org.redtea.Genshin.ItemEntity;
 import org.redtea.Genshin.addLogs;
+import org.redtea.Genshin.miHoYoCounts;
 import org.redtea.Genshin.miHoYoSoup;
 import org.redtea.Threads.WorkThread;
 import org.redtea.Utils.Utils;
 import org.redtea.resourceUpdate.Main;
+import org.redtea.resourceUpdate.resourcesCounts;
 
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
@@ -28,10 +30,10 @@ public class MainWindow {
     private JPanel root;
     private JTabbedPane MainTab;
     private JTabbedPane SecondFromMainTeb;
+    private JPanel general;
     private JPanel details;
     private JScrollPane detailsScroll;
     private JPanel detailsInScroll;
-    private JPanel general;
     private JPanel Search;
     private JPanel AddLogs;
     private JButton StartButton;
@@ -65,8 +67,6 @@ public class MainWindow {
 
     private static boolean GetURL;
 
-    private Thread workThread = null;
-
     //获取mihoyosoup中获取到的结果（五星）
 
     //事件监听器
@@ -76,10 +76,9 @@ public class MainWindow {
             public void actionPerformed(ActionEvent e) {
                 new Thread(() -> {
                     StartButton.setEnabled(false);
-                    if (workThread == null) {
-                        workThread = new WorkThread(StartProgress);
-                        workThread.start();
-                    }
+
+                    Thread workThread = new WorkThread(StartProgress, 140, new miHoYoCounts());
+                    workThread.start();
 
                     miHoYoSoup miHoYoSoup = new miHoYoSoup();
                     miHoYoSoup.miHoYoSoupGetLogs(GetURL);
@@ -155,12 +154,12 @@ public class MainWindow {
                     weaponPool.setValue(weaponPoolValue);
                     weaponPool.setString(weaponPoolNum);
                     weaponPool.setStringPainted(true);
-
-                    details.repaint();
-                    org.redtea.Genshin.miHoYoSoup.setCount(100);
-                    general.repaint();
+/*                    general.repaint();
+                    details.repaint();*/
+                    SecondFromMainTeb.repaint();
                     StartButton.setEnabled(true);
-                }).start();
+                    workThread.interrupt();
+                }, "progressbar").start();
             }
         });
 
@@ -206,7 +205,14 @@ public class MainWindow {
         resourcesUpdateButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                Main.start();
+                new Thread(() -> {
+                    resourcesUpdateButton.setEnabled(false);
+                    Thread workThread = new WorkThread(StartProgress, 50, new resourcesCounts());
+                    workThread.start();
+                    Main.start();
+                    resourcesUpdateButton.setEnabled(true);
+                    workThread.interrupt();
+                }).start();
             }
         });
     }
@@ -237,7 +243,6 @@ public class MainWindow {
     }
 
 
-
     public int[] getInts() {
         return ints;
     }
@@ -263,7 +268,6 @@ public class MainWindow {
     }
 
     private void setUI() {
-        String path;
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         Point p = ge.getCenterPoint();
         JFrame frame = new JFrame("原神抽卡记录");
@@ -273,8 +277,6 @@ public class MainWindow {
         detailsInScroll = new JPanel(new GridBagLayout());
 
         detailsInScroll.setOpaque(false);
-        SecondFromMainTeb.addTab("总  览", general);
-        SecondFromMainTeb.addTab("详  情", details);
         details.setVisible(true);
         detailsScroll.setOpaque(false);
         detailsScroll.getViewport().setOpaque(false);
@@ -322,7 +324,6 @@ public class MainWindow {
             i++;
         }
     }
-
 
 
     {
