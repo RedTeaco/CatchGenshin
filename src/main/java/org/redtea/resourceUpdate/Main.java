@@ -16,7 +16,7 @@ public class Main {
             html = Utils.getHtml("https://wiki.biligame.com/ys/%E8%A7%92%E8%89%B2%E7%AD%9B%E9%80%89");
             htmlWeapon = Utils.getHtml("https://wiki.biligame.com/ys/%E6%AD%A6%E5%99%A8%E5%9B%BE%E9%89%B4");
         }catch (IOException e){
-            e.printStackTrace();
+            //e.printStackTrace();
         }
         mapAvatar = Utils.getAvatarUrl(html);
         mapWeapon = Utils.getWeaponUrl(htmlWeapon);

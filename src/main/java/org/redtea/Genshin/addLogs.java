@@ -75,8 +75,7 @@ public class addLogs {
     public void writeSave(List<ItemEntity> itemEntityList) {
         String uid = itemEntityList.get(0).getUid();
         File dir = new File(dataFilename.split(uid)[0]);
-        if (dir.exists()) {
-        } else {
+        if (!dir.exists()) {
             dir.mkdirs();
         }
         try (ExcelWriter writer = EasyExcel.write(dataFilename, ItemEntity.class).build()) {
@@ -164,7 +163,6 @@ public class addLogs {
     public List<ItemEntity> getLogData() {
         List<ItemEntity> itemEntities = readExcel(dataFilename).get("AddLog");
         List<ItemEntity> resultList = new ArrayList<>();
-        int i = 0;
         for (ItemEntity item : itemEntities) {
             if (item.getRank_type().equals("5")) {
                 String pool = switch (item.getGacha_type()) {
@@ -176,10 +174,7 @@ public class addLogs {
                 };
                 item.setGacha_type(pool);
                 resultList.add(item);
-            } else {
-                continue;
             }
-            i++;
         }
         return resultList;
     }

@@ -4,8 +4,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
-import org.junit.Test;
-
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -24,21 +22,21 @@ public class Utils {
 
 
     //获取网页源码
-    public static final String getHtml(String urlString) throws IOException {
+    public static String getHtml(String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection hrc = (HttpURLConnection) url.openConnection();
         InputStream in = hrc.getInputStream();
         String html = Utils.convertStreamToString(in);
         return html;
     }
-    public static String convertStreamToString(InputStream in) throws UnsupportedEncodingException {
+    public static String convertStreamToString(InputStream in) {
         BufferedReader reader = new BufferedReader(new InputStreamReader(in, StandardCharsets.UTF_8));
         StringBuilder sb = new StringBuilder();
-        String line = null;
+        String line;
         String str = System.getProperty("line.separator");
         try {
             while ((line = reader.readLine()) != null){
-                sb.append(line + str);
+                sb.append(line).append(str);
             }
         } catch (IOException e){
             e.printStackTrace();
@@ -68,8 +66,7 @@ public class Utils {
                     map.put(avatar,strings[9]);
                 }
             }catch (IllegalStateException | ArrayIndexOutOfBoundsException e){
-                e.printStackTrace();
-                continue;
+                //e.printStackTrace();
             }
         }
         return map;
@@ -90,7 +87,6 @@ public class Utils {
                 }
             }catch (IllegalStateException | ArrayIndexOutOfBoundsException e){
                 e.printStackTrace();
-                continue;
             }
         }
         return map;
@@ -118,16 +114,20 @@ public class Utils {
             outStream.write(data);
             //关闭输出流
             outStream.close();
-        } catch (Exception e) {
+        } catch (Exception ignored) {
         } finally {
             try {
-                inputStream.close();
-            } catch (IOException e) {
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+            } catch (IOException ignored) {
 
             }
             try {
-                httpClient.close();
-            } catch (IOException e) {
+                if (httpClient != null) {
+                    httpClient.close();
+                }
+            } catch (IOException ignored) {
 
             }
         }
@@ -138,7 +138,7 @@ public class Utils {
         //创建一个Buffer字符串
         byte[] buffer = new byte[1024];
         //每次读取的字符串长度，如果为-1，代表全部读取完毕
-        int len = 0;
+        int len;
         //使用一个输入流从buffer里把数据读取出来
         while( (len=inStream.read(buffer)) != -1 ){
             //用输出流往buffer里写入数据，中间参数代表从哪个位置开始读，len代表读取的长度

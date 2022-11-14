@@ -8,6 +8,8 @@ import org.redtea.GUI.Controller.label;
 import org.redtea.Genshin.ItemEntity;
 import org.redtea.Genshin.addLogs;
 import org.redtea.Genshin.miHoYoSoup;
+import org.redtea.Threads.WorkThread;
+import org.redtea.Utils.Utils;
 import org.redtea.resourceUpdate.Main;
 
 import javax.swing.*;
@@ -23,7 +25,6 @@ import java.util.*;
 
 public class MainWindow {
     private static List<ItemEntity> itemEntityList;
-    private final ImageIcon icon;
     private JPanel root;
     private JTabbedPane MainTab;
     private JTabbedPane SecondFromMainTeb;
@@ -36,12 +37,12 @@ public class MainWindow {
     private JButton StartButton;
     private JTextField uidTextField;
     private JTextField nameTextField;
-    private JComboBox gachaTypeBox;
-    private JComboBox rankeBox;
+    private JComboBox<String> gachaTypeBox;
+    private JComboBox<String> rankeBox;
     private JTextField CountTextField;
     private JButton SubmitButton;
     private JLabel uidlabel;
-    private JComboBox ItemType;
+    private JComboBox<String> ItemType;
     private JProgressBar totalNum;
     private JProgressBar weaponNum;
     private JProgressBar characterNum;
@@ -51,19 +52,10 @@ public class MainWindow {
     private JProgressBar UPPool;
     private JProgressBar weaponPool;
     private JButton resourcesUpdateButton;
+
+    private JProgressBar StartProgress;
     private int[] ints;
     private List<ItemEntity> fifthStarList;
-    private label fifth_star_percent;
-    private label fifth_star;
-    private label fourth_star_percent;
-    private label fourth_star;
-    private label total_num;
-    private label total_weapon;
-    private label total_character;
-
-    private label weapon_pool;
-    private label character_pool;
-    private label normal_pool;
 
     private int total;
     private int weapon;
@@ -71,14 +63,9 @@ public class MainWindow {
     private int fifth;
     private int fourth;
 
-    {
-        File file = new File("");
-        ImageIcon icon;
-        Image image;
-        icon = new ImageIcon(file.getAbsolutePath() + "\\src\\main\\resources\\icons\\backgrounds\\gacha.png");
-        image = icon.getImage();
-        this.icon = icon;
-    }
+    private static boolean GetURL;
+
+    private Thread workThread = null;
 
     //获取mihoyosoup中获取到的结果（五星）
 
@@ -87,90 +74,93 @@ public class MainWindow {
         StartButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                miHoYoSoup miHoYoSoup = new miHoYoSoup();
-                miHoYoSoup.miHoYoSoupGetLogs();
-                setInts(miHoYoSoup.getResultIntList());
-                addLogs addLogs = new addLogs(miHoYoSoup.getResultList().get(0).getUid());
-                try {
-                    List<ItemEntity> list = addLogs.getLogData();
-                    setFifthStarList(miHoYoSoup.get_collects(list, miHoYoSoup.getResultList()));
-                } catch (Exception e1) {
-                    setFifthStarList(miHoYoSoup.getResultList());
-                }
-                fifth = getInts()[5];
-                fourth = getInts()[4];
-                total = getInts()[0];
-                character = getInts()[1];
-                weapon = getInts()[2];
-                addLabelDetails(getFifthStarList());
-/*                total_num.setText("抽卡总数:" + getInts()[0]);
-                total_weapon.setText("武器总数:" + weapon);
-                total_character.setText("角色总数:" + character);
-                fifth_star.setText("五星数:" + fifth);
-                fifth_star_percent.setText("五星概率:" + String.format("%.4f", (double) fifth / total * 100) + "%");
-                fourth_star.setText("四星数:" + fourth);
-                fourth_star_percent.setText("四星概率:" + String.format("%.4f", (double) fourth / total * 100) + "%");
-                normal_pool.setText(miHoYoSoup.getCounts().get(1));
-                character_pool.setText(miHoYoSoup.getCounts().get(2));
-                weapon_pool.setText(miHoYoSoup.getCounts().get(3));
-                total_num.repaint();
-                total_weapon.repaint();
-                total_character.repaint();
-                fourth_star.repaint();
-                fifth_star_percent.repaint();
-                fourth_star.repaint();
-                fourth_star_percent.repaint();
-                normal_pool.repaint();
-                character_pool.repaint();
-                weapon_pool.repaint();
+                new Thread(() -> {
+                    StartButton.setEnabled(false);
+                    if (workThread == null) {
+                        workThread = new WorkThread(StartProgress);
+                        workThread.start();
+                    }
 
-                details.repaint();
-                general.repaint();*/
-                totalNum.setValue(100);
-                totalNum.setString(String.valueOf(total));
-                totalNum.setStringPainted(true);
+                    miHoYoSoup miHoYoSoup = new miHoYoSoup();
+                    miHoYoSoup.miHoYoSoupGetLogs(GetURL);
+                    if (GetURL) {
+                        miHoYoSoup.miHoYoSoupGetLogs(true);
+                    }
+                    setInts(miHoYoSoup.getResultIntList());
+                    String uid;
+                    try {
+                        uid = miHoYoSoup.getResultList().get(0).getUid();
+                    } catch (
+                            NullPointerException e1) {
+                        workThread.interrupt();
+                        StartButton.setEnabled(true);
+                        JOptionPane.showMessageDialog(null, "当前url已过期，请点击游戏中的历史记录后重试...", "出现错误!", JOptionPane.ERROR_MESSAGE);
+                        return;
+                    }
+                    try {
+                        addLogs addLogs = new addLogs(uid);
+                        List<ItemEntity> list = addLogs.getLogData();
+                        setFifthStarList(miHoYoSoup.get_collects(list, miHoYoSoup.getResultList()));
+                    } catch (
+                            Exception e1) {
+                        setFifthStarList(miHoYoSoup.getResultList());
+                    }
 
-                int weaponNumValue = (int) ((double) weapon / total * 100);
-                weaponNum.setValue(weaponNumValue);
-                weaponNum.setString(String.valueOf(weapon));
-                weaponNum.setStringPainted(true);
+                    fifth = getInts()[5];
+                    fourth = getInts()[4];
+                    total = getInts()[0];
+                    character = getInts()[1];
+                    weapon = getInts()[2];
 
-                int characterNumValue = (int) ((double) character / total * 100);
-                characterNum.setValue(characterNumValue);
-                characterNum.setString(String.valueOf(character));
-                characterNum.setStringPainted(true);
+                    addLabelDetails(getFifthStarList());
 
-                int fifthStarNumValue = (int) ((double) fifth / total * 100);
-                fifthStarNum.setValue(fifthStarNumValue);
-                fifthStarNum.setString(String.valueOf(fifth));
-                fifthStarNum.setStringPainted(true);
+                    totalNum.setValue(100);
+                    totalNum.setString(String.valueOf(total));
+                    totalNum.setStringPainted(true);
 
-                int forthStarNumValue = (int) ((double) fourth / total * 100);
-                forthStarNum.setValue(forthStarNumValue);
-                forthStarNum.setString(String.valueOf(fourth));
-                forthStarNum.setStringPainted(true);
+                    int weaponNumValue = (int) ((double) weapon / total * 100);
+                    weaponNum.setValue(weaponNumValue);
+                    weaponNum.setString(String.valueOf(weapon));
+                    weaponNum.setStringPainted(true);
 
-                String normalPoolNum = miHoYoSoup.getCounts().get(1);
-                int normalPoolValue = Integer.parseInt(normalPoolNum);
-                normalPool.setValue(normalPoolValue);
-                normalPool.setString(normalPoolNum);
-                normalPool.setStringPainted(true);
+                    int characterNumValue = (int) ((double) character / total * 100);
+                    characterNum.setValue(characterNumValue);
+                    characterNum.setString(String.valueOf(character));
+                    characterNum.setStringPainted(true);
 
-                String UPPoolNum = miHoYoSoup.getCounts().get(2);
-                int characterPoolValue = Integer.parseInt(UPPoolNum);
-                UPPool.setValue(characterPoolValue);
-                UPPool.setString(UPPoolNum);
-                UPPool.setStringPainted(true);
+                    int fifthStarNumValue = (int) ((double) fifth / total * 100);
+                    fifthStarNum.setValue(fifthStarNumValue);
+                    fifthStarNum.setString(String.valueOf(fifth));
+                    fifthStarNum.setStringPainted(true);
 
-                String weaponPoolNum = miHoYoSoup.getCounts().get(3);
-                int weaponPoolValue = Integer.parseInt(weaponPoolNum);
-                weaponPool.setValue(weaponPoolValue);
-                weaponPool.setString(weaponPoolNum);
-                weaponPool.setStringPainted(true);
+                    int forthStarNumValue = (int) ((double) fourth / total * 100);
+                    forthStarNum.setValue(forthStarNumValue);
+                    forthStarNum.setString(String.valueOf(fourth));
+                    forthStarNum.setStringPainted(true);
 
-                details.repaint();
-                general.repaint();
+                    String normalPoolNum = miHoYoSoup.getCounts().get(1);
+                    int normalPoolValue = Integer.parseInt(normalPoolNum);
+                    normalPool.setValue(normalPoolValue);
+                    normalPool.setString(normalPoolNum);
+                    normalPool.setStringPainted(true);
 
+                    String UPPoolNum = miHoYoSoup.getCounts().get(2);
+                    int characterPoolValue = Integer.parseInt(UPPoolNum);
+                    UPPool.setValue(characterPoolValue);
+                    UPPool.setString(UPPoolNum);
+                    UPPool.setStringPainted(true);
+
+                    String weaponPoolNum = miHoYoSoup.getCounts().get(3);
+                    int weaponPoolValue = Integer.parseInt(weaponPoolNum);
+                    weaponPool.setValue(weaponPoolValue);
+                    weaponPool.setString(weaponPoolNum);
+                    weaponPool.setStringPainted(true);
+
+                    details.repaint();
+                    org.redtea.Genshin.miHoYoSoup.setCount(100);
+                    general.repaint();
+                    StartButton.setEnabled(true);
+                }).start();
             }
         });
 
@@ -182,34 +172,34 @@ public class MainWindow {
                     uid = getFifthStarList().get(0).getUid();
                 } else {
                     uid = uidTextField.getText();
-                    SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
-                    String time = simpleDateFormat.format(System.currentTimeMillis());
-                    String rank_type = "";
-                    String gacha_type = "";
-                    String rankBoxValue = (String) rankeBox.getSelectedItem();
-                    String gachaTypeBoxValue = (String) gachaTypeBox.getSelectedItem();
-                    if (rankBoxValue.equals("金色")) {
-                        rank_type = "5";
-                    } else if (rankBoxValue.equals("紫色")) {
-                        rank_type = "4";
-                    }
-                    if (gachaTypeBoxValue.equals("常驻池")) {
-                        gacha_type = "200";
-                    } else if (gachaTypeBoxValue.equals("角色池")) {
-                        gacha_type = "301";
-                    } else if (gachaTypeBoxValue.equals("武器池")) {
-                        gacha_type = "302";
-                    }
-                    ItemEntity itemEntity = new ItemEntity(uid, "", (String) ItemType.getSelectedItem(),
-                            CountTextField.getText(),
-                            nameTextField.getText(),
-                            gacha_type, time, "", "zh-cn", rank_type);
-                    List<ItemEntity> ls = new ArrayList<>();
-                    ls.add(itemEntity);
-                    setItemEntityList(ls);
-                    addLogs addLogs = new addLogs(itemEntity);
-                    addLogs.mainMethod();
                 }
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+                String time = simpleDateFormat.format(System.currentTimeMillis());
+                String rank_type = "";
+                String gacha_type = "";
+                String rankBoxValue = (String) rankeBox.getSelectedItem();
+                String gachaTypeBoxValue = (String) gachaTypeBox.getSelectedItem();
+                assert rankBoxValue != null;
+                if (rankBoxValue.equals("金色")) {
+                    rank_type = "5";
+                } else if (rankBoxValue.equals("紫色")) {
+                    rank_type = "4";
+                }
+                assert gachaTypeBoxValue != null;
+                switch (gachaTypeBoxValue) {
+                    case "常驻池" -> gacha_type = "200";
+                    case "角色池" -> gacha_type = "301";
+                    case "武器池" -> gacha_type = "302";
+                }
+                ItemEntity itemEntity = new ItemEntity(uid, "", (String) ItemType.getSelectedItem(),
+                        CountTextField.getText(),
+                        nameTextField.getText(),
+                        gacha_type, time, "", "zh-cn", rank_type);
+                List<ItemEntity> ls = new ArrayList<>();
+                ls.add(itemEntity);
+                setItemEntityList(ls);
+                addLogs addLogs = new addLogs(itemEntity);
+                addLogs.mainMethod();
             }
         });
 
@@ -220,6 +210,7 @@ public class MainWindow {
             }
         });
     }
+
 
     public static List<ItemEntity> getItemEntityList() {
         return itemEntityList;
@@ -232,24 +223,20 @@ public class MainWindow {
     public static void main(String[] args) {
         FlatLightLaf.install();
         String path = new File("").getAbsolutePath() + "\\src\\main\\resources\\fonts\\Genshin.ttf";
-        InitGlobalFont(label.getSelfDefinedFont(path, 16));
+        try {
+            Utils.InitGlobalFont(label.getSelfDefinedFont(path, 16));
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
         MainWindow mainWindow = new MainWindow();
-        mainWindow.StartButton.setFont(label.getSelfDefinedFont(path, 20));
-        mainWindow.SubmitButton.setFont(label.getSelfDefinedFont(path, 20));
-        mainWindow.resourcesUpdateButton.setFont(label.getSelfDefinedFont(path, 20));
+        Font ButtonFont = mainWindow.StartButton.getFont().deriveFont(Font.PLAIN, 20);
+        mainWindow.StartButton.setFont(ButtonFont);
+        mainWindow.SubmitButton.setFont(ButtonFont);
+        mainWindow.resourcesUpdateButton.setFont(ButtonFont);
         mainWindow.setUI();
     }
 
-    private static void InitGlobalFont(Font font) {
-        FontUIResource fontRes = new FontUIResource(font);
-        for (Enumeration<Object> keys = UIManager.getDefaults().keys(); keys.hasMoreElements(); ) {
-            Object key = keys.nextElement();
-            Object value = UIManager.get(key);
-            if (value instanceof FontUIResource) {
-                UIManager.put(key, fontRes);
-            }
-        }
-    }
+
 
     public int[] getInts() {
         return ints;
@@ -267,6 +254,14 @@ public class MainWindow {
         this.fifthStarList = fifthStarList;
     }
 
+    public static boolean isGetURL() {
+        return GetURL;
+    }
+
+    public static void setGetURL(boolean getURL) {
+        GetURL = getURL;
+    }
+
     private void setUI() {
         String path;
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
@@ -278,12 +273,8 @@ public class MainWindow {
         detailsInScroll = new JPanel(new GridBagLayout());
 
         detailsInScroll.setOpaque(false);
-        //设置字体和选项卡文字
-        path = new File("").getAbsolutePath() + "\\src\\main\\resources\\fonts\\Genshin.ttf";
-        MainTab.setFont(label.getSelfDefinedFont(path, 18));
         SecondFromMainTeb.addTab("总  览", general);
         SecondFromMainTeb.addTab("详  情", details);
-        SecondFromMainTeb.setFont(label.getSelfDefinedFont(path, 18));
         details.setVisible(true);
         detailsScroll.setOpaque(false);
         detailsScroll.getViewport().setOpaque(false);
@@ -302,8 +293,6 @@ public class MainWindow {
         frame.pack();
         //设置界面在显示器中央显示
         frame.setLocation((p.x - frame.getWidth() / 2), (p.y - frame.getHeight() / 2));
-        //设置窗体颜色
-
         frame.setVisible(true);
     }
 
@@ -320,13 +309,12 @@ public class MainWindow {
             } else if ("角色".equals(list.getItem_type())) {
                 type = "characters";
             }
-            //label label = new label(list.getName() + " " + list.getGacha_type() + " " + list.getCount(), type + "\\" + list.getName() + ".png");
             label label = new label(list.getName() + " " + list.getGacha_type(), type + "\\" + list.getName() + ".png");
             JProgressBar progressBar = new JProgressBar(0, 90);
             progressBar.setBorderPainted(false);
             progressBar.setPreferredSize(new Dimension(300, 20));
             progressBar.setValue(Integer.parseInt(list.getCount()));
-            progressBar.setForeground(getColor(Float.parseFloat(list.getCount())));
+            progressBar.setForeground(Utils.getColor(Double.parseDouble(list.getCount())));
             progressBar.setStringPainted(true);
             progressBar.setString(list.getCount());
             detailsInScroll.add(label, gbcLabel);
@@ -335,22 +323,7 @@ public class MainWindow {
         }
     }
 
-    private Color getColor(float val) {
-        float one = (255 + 255) / 60;//（255+255）除以最大取值的三分之二
-        int r = 0, g = 0, b = 0;
-        if (val < 30)//第一个三等分
-        {
-            r = (int) (one * val);
-            g = 255;
-        } else if (val >= 30 && val < 60)//第二个三等分
-        {
-            r = 255;
-            g = 255 - (int) ((val - 30) * one);//val减最大取值的三分之一
-        } else {
-            r = 255;
-        }//最后一个三等分
-        return new Color(r, g, b);
-    }
+
 
     {
 // GUI initializer generated by IntelliJ IDEA GUI Designer
@@ -377,25 +350,25 @@ public class MainWindow {
         root.add(panel1, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
         MainTab = new JTabbedPane();
         MainTab.setAutoscrolls(false);
-        Font MainTabFont = this.$$$getFont$$$("HYWenHei-85W", -1, 22, MainTab.getFont());
+        Font MainTabFont = this.$$$getFont$$$(null, -1, -1, MainTab.getFont());
         if (MainTabFont != null) MainTab.setFont(MainTabFont);
         MainTab.setInheritsPopupMenu(false);
         MainTab.setOpaque(false);
         MainTab.setTabPlacement(2);
         panel1.add(MainTab, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(950, 650), null, 0, false));
         Search = new JPanel();
-        Search.setLayout(new GridLayoutManager(3, 1, new Insets(0, 0, 0, 0), -1, -1));
+        Search.setLayout(new GridLayoutManager(4, 1, new Insets(0, 0, 0, 0), -1, -1));
         Search.setOpaque(false);
         Search.setPreferredSize(new Dimension(-1, -1));
         MainTab.addTab("抽卡查询", Search);
         SecondFromMainTeb = new JTabbedPane();
         SecondFromMainTeb.setAutoscrolls(false);
-        Font SecondFromMainTebFont = this.$$$getFont$$$("HYWenHei-85W", -1, 20, SecondFromMainTeb.getFont());
+        Font SecondFromMainTebFont = this.$$$getFont$$$(null, -1, -1, SecondFromMainTeb.getFont());
         if (SecondFromMainTebFont != null) SecondFromMainTeb.setFont(SecondFromMainTebFont);
         SecondFromMainTeb.setOpaque(false);
         SecondFromMainTeb.setTabPlacement(2);
         SecondFromMainTeb.setVisible(true);
-        Search.add(SecondFromMainTeb, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        Search.add(SecondFromMainTeb, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(459, 543), null, 0, false));
         general = new JPanel();
         general.setLayout(new GridLayoutManager(8, 3, new Insets(0, 0, 0, 0), -1, -1));
         SecondFromMainTeb.addTab("总览", general);
@@ -459,16 +432,21 @@ public class MainWindow {
         SecondFromMainTeb.addTab("详情", details);
         StartButton = new JButton();
         StartButton.setAutoscrolls(false);
-        Font StartButtonFont = this.$$$getFont$$$("HYWenHei-85W", -1, 20, StartButton.getFont());
+        Font StartButtonFont = this.$$$getFont$$$(null, -1, -1, StartButton.getFont());
         if (StartButtonFont != null) StartButton.setFont(StartButtonFont);
         StartButton.setHorizontalTextPosition(11);
         StartButton.setText("开始查询");
-        Search.add(StartButton, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        Search.add(StartButton, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         resourcesUpdateButton = new JButton();
-        Font resourcesUpdateButtonFont = this.$$$getFont$$$("HYWenHei-85W", -1, 20, resourcesUpdateButton.getFont());
+        Font resourcesUpdateButtonFont = this.$$$getFont$$$(null, -1, -1, resourcesUpdateButton.getFont());
         if (resourcesUpdateButtonFont != null) resourcesUpdateButton.setFont(resourcesUpdateButtonFont);
         resourcesUpdateButton.setText("资源更新");
-        Search.add(resourcesUpdateButton, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        Search.add(resourcesUpdateButton, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        StartProgress = new JProgressBar();
+        StartProgress.setBorderPainted(false);
+        StartProgress.setFocusable(false);
+        StartProgress.setMaximum(100);
+        Search.add(StartProgress, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_SOUTH, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         AddLogs = new JPanel();
         AddLogs.setLayout(new GridLayoutManager(7, 4, new Insets(0, 0, 0, 0), -1, -1));
         AddLogs.setOpaque(false);

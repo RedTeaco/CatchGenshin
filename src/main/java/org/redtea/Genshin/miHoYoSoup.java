@@ -4,6 +4,8 @@ import com.alibaba.fastjson.JSON;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.redtea.EasyExcel.util.TestFileUtil;
+import org.redtea.GUI.MainWindow;
+import org.redtea.getUrl.getUrl;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -18,11 +20,20 @@ import static org.redtea.EasyExcel.write.WriteTest.writeToExcel;
 
 //接受url,解析成实体列表并返回
 public class miHoYoSoup {
-    //private static final String FILENAME_TEST = getPath()+"/src/main/java/org/redtea/url.txt";
-    private static final String FILENAME = getPath() + "/url.txt";
+    private static final String FILENAME = getPath() + "/data/url.txt";
     private int[] resultIntList;
     private List<ItemEntity> resultList;
     private List<String> counts;
+
+    public static int getCount() {
+        return count;
+    }
+
+    public static void setCount(int count) {
+        miHoYoSoup.count = count;
+    }
+
+    private static int count = 0;
     public miHoYoSoup() {
 
     }
@@ -48,7 +59,7 @@ public class miHoYoSoup {
         return file.getAbsolutePath();
     }
 
-    public static void main(String[] args) {
+    public static void main() {
         miHoYoSoup miHoYoSoup = new miHoYoSoup();
         String url = getURL();
         try {
@@ -74,16 +85,20 @@ public class miHoYoSoup {
         return counts;
     }
 
-    public void miHoYoSoupGetLogs() {
-        String url = getURL();
-        //System.out.println(url);
+    public void miHoYoSoupGetLogs(boolean GetURL) {
+        String url;
+        //使用传入的参数判断是否需要重新获取url；
+        if (!GetURL){
+            url = getURL();
+        } else {
+            url = getUrl.outUrl();
+        }
         try {
             Map<String, List<ItemEntity>> ItemEntityMap = getAllItem(url);
             postprocess(ItemEntityMap);
-/*            System.out.println(Arrays.toString(getResultIntList()));
-            System.out.println(getResultList());*/
+            MainWindow.setGetURL(false);
         } catch (NullPointerException e) {
-            System.out.println("当前url已过期，请点击游戏内的历史记录后重新运行。");
+            MainWindow.setGetURL(true);
         }
     }
 
@@ -106,7 +121,7 @@ public class miHoYoSoup {
             List<ItemEntity> itemEntityList = JSON.parseArray(map2.get("list").toString(), ItemEntity.class);
             return itemEntityList;
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return null;
         }
     }
@@ -128,7 +143,6 @@ public class miHoYoSoup {
 
     //从抽卡记录的url中提取出数据
     private Map<String, List<ItemEntity>> getAllItem(String url) {
-
         //100:新手祈愿，200:常驻祈愿，301:角色UP,302:武器UP
         String[] gachatypes = new String[]{"100", "200", "301", "302"};
         //定义一个Map存放四个卡池的数据
@@ -139,32 +153,34 @@ public class miHoYoSoup {
         map.put("302", new ArrayList<>());
         String baseurl = getURLDiffType(url);
         for (int i = 0; i < gachatypes.length; i++) {
-            StringBuilder sb = new StringBuilder();
-            sb.append(baseurl);
-            sb.append("gacha_type=" + gachatypes[i] + "&");
-            sb.append("page=1&");
-            sb.append("size=20&");
-            String baseurlplus = sb.toString();
+            String baseurlplus = baseurl +
+                    "gacha_type=" + gachatypes[i] + "&" +
+                    "page=1&" +
+                    "size=20&";
             String end_id = "0";
             while (true) {
-                StringBuilder str = new StringBuilder();
-                str.append(baseurlplus);
-                str.append("end_id=" + end_id);
-                //System.out.println("查询卡池:"+gachatypes[i]+"\nend_id="+end_id);
-                List<ItemEntity> itemEntityList = parsejson(str.toString());
+                String str = baseurlplus +
+                        "end_id=" + end_id;
+                List<ItemEntity> itemEntityList = parsejson(str);
                 //如果查询到的数据为空表示查完了
                 if (itemEntityList.size() == 0) {
                     System.out.println("卡池(" + gachatypes[i] + ")查询完毕");
                     if (i < 3) {
                         System.out.println("查询卡池" + gachatypes[i + 1] + "中...");
+                        switch (i){
+                            case 0 -> count = 10;
+                            case 1 -> count = 20;
+                            case 2 -> count = 80;
+                        }
                     } else {
                         System.out.println();
+                        count = 95;
                     }
                     break;
                 }
                 //将数据装到map里
-                for (int j = 0; j < itemEntityList.size(); j++) {
-                    map.get(gachatypes[i]).add(itemEntityList.get(j));
+                for (ItemEntity itemEntity : itemEntityList) {
+                    map.get(gachatypes[i]).add(itemEntity);
                 }
                 //得到最后一个元素的end_id
                 end_id = itemEntityList.get(itemEntityList.size() - 1).getId();

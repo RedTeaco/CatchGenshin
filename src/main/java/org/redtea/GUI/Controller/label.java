@@ -29,32 +29,24 @@ public class label extends JLabel {
     }
 
     public static java.awt.Font getSelfDefinedFont(String filepath, int Size) {
-        java.awt.Font font = null;
+        java.awt.Font font;
         File file = new File(filepath);
         try {
             font = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, file);
             font = font.deriveFont(java.awt.Font.PLAIN, Size);
-        } catch (FontFormatException e) {
-            return null;
-        } catch (FileNotFoundException e) {
-            return null;
-        } catch (IOException e) {
+        } catch (FontFormatException | IOException e) {
             return null;
         }
         return font;
     }
 
     public static java.awt.Font getSelfDefinedFont(String filepath) {
-        java.awt.Font font = null;
+        java.awt.Font font;
         File file = new File(filepath);
         try {
             font = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, file);
             font = font.deriveFont(java.awt.Font.PLAIN);
-        } catch (FontFormatException e) {
-            return null;
-        } catch (FileNotFoundException e) {
-            return null;
-        } catch (IOException e) {
+        } catch (FontFormatException | IOException e) {
             return null;
         }
         return font;
