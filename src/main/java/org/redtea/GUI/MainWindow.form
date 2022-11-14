@@ -49,8 +49,8 @@
                 <children>
                   <tabbedpane id="ca173" binding="SecondFromMainTeb">
                     <constraints>
-                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="3" anchor="0" fill="3" indent="0" use-parent-layout="false">
-                        <preferred-size width="459" height="543"/>
+                      <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                        <preferred-size width="950" height="650"/>
                       </grid>
                     </constraints>
                     <properties>
@@ -235,7 +235,45 @@
                         </constraints>
                         <properties/>
                         <border type="none"/>
-                        <children/>
+                        <children>
+                          <tabbedpane id="bfd40" binding="Pools">
+                            <constraints>
+                              <grid row="0" column="0" row-span="1" col-span="1" vsize-policy="3" hsize-policy="7" anchor="0" fill="3" indent="0" use-parent-layout="false">
+                                <preferred-size width="200" height="200"/>
+                              </grid>
+                            </constraints>
+                            <properties>
+                              <tabLayoutPolicy value="0"/>
+                            </properties>
+                            <border type="none"/>
+                            <children>
+                              <scrollpane id="bb055" binding="normalPoolPane">
+                                <constraints>
+                                  <tabbedpane title="常驻池"/>
+                                </constraints>
+                                <properties/>
+                                <border type="none"/>
+                                <children/>
+                              </scrollpane>
+                              <scrollpane id="3b005" binding="upPoolPane">
+                                <constraints>
+                                  <tabbedpane title="角色池"/>
+                                </constraints>
+                                <properties/>
+                                <border type="none"/>
+                                <children/>
+                              </scrollpane>
+                              <scrollpane id="27ed2" binding="weaponPoolPane">
+                                <constraints>
+                                  <tabbedpane title="武器池"/>
+                                </constraints>
+                                <properties/>
+                                <border type="none"/>
+                                <children/>
+                              </scrollpane>
+                            </children>
+                          </tabbedpane>
+                        </children>
                       </grid>
                     </children>
                   </tabbedpane>

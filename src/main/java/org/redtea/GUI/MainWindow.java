@@ -32,8 +32,6 @@ public class MainWindow {
     private JTabbedPane SecondFromMainTeb;
     private JPanel general;
     private JPanel details;
-    private JScrollPane detailsScroll;
-    private JPanel detailsInScroll;
     private JPanel Search;
     private JPanel AddLogs;
     private JButton StartButton;
@@ -56,6 +54,14 @@ public class MainWindow {
     private JButton resourcesUpdateButton;
 
     private JProgressBar StartProgress;
+    private JTabbedPane Pools;
+    private JScrollPane normalPoolPane;
+    private JScrollPane upPoolPane;
+    private JScrollPane weaponPoolPane;
+    private JPanel normalPane;
+
+    private JPanel upPane;
+    private JPanel weaponPane;
     private int[] ints;
     private List<ItemEntity> fifthStarList;
 
@@ -158,6 +164,7 @@ public class MainWindow {
                     details.repaint();*/
                     SecondFromMainTeb.repaint();
                     StartButton.setEnabled(true);
+                    SecondFromMainTeb.setSelectedIndex(0);
                     workThread.interrupt();
                 }, "progressbar").start();
             }
@@ -271,21 +278,37 @@ public class MainWindow {
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         Point p = ge.getCenterPoint();
         JFrame frame = new JFrame("原神抽卡记录");
-        detailsScroll = new JScrollPane();
-        detailsScroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-
-        detailsInScroll = new JPanel(new GridBagLayout());
-
-        detailsInScroll.setOpaque(false);
-        details.setVisible(true);
-        detailsScroll.setOpaque(false);
-        detailsScroll.getViewport().setOpaque(false);
-        //设置details的布局管理器
+        JScrollPane js = null;
         details.setLayout(new GridLayout());
-        details.add(detailsScroll);//, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 1, false));
-        detailsScroll.setVisible(true);
-        detailsScroll.setViewportView(detailsInScroll);
-        detailsScroll.getVerticalScrollBar().setUnitIncrement(16);
+        details.setVisible(true);
+        String name;
+        for (int i = 0; i < 3; i++) {
+            if (i == 0) {
+                js = normalPoolPane;
+                name = "常驻池";
+                normalPane = new JPanel(new GridBagLayout());
+                js.setViewportView(normalPane);
+            } else if (i == 1) {
+                js = upPoolPane;
+                name = "角色池";
+                upPane = new JPanel(new GridBagLayout());
+                js.setViewportView(upPane);
+            } else {
+                js = weaponPoolPane;
+                name = "武器池";
+                weaponPane = new JPanel(new GridBagLayout());
+                js.setViewportView(weaponPane);
+            }
+            js.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+
+            js.setOpaque(false);
+            js.getViewport().setOpaque(false);
+            //设置details的布局管理器
+            Pools.add(name, js);
+            js.setVisible(true);
+            //js.setViewportView(detailsInScroll);
+            js.getVerticalScrollBar().setUnitIncrement(16);
+        }
         //设置总览的布局管理器等
         general.setOpaque(true);
         general.setVisible(true);
@@ -313,14 +336,23 @@ public class MainWindow {
             }
             label label = new label(list.getName() + " " + list.getGacha_type(), type + "\\" + list.getName() + ".png");
             JProgressBar progressBar = new JProgressBar(0, 90);
+            JPanel js = null;
             progressBar.setBorderPainted(false);
             progressBar.setPreferredSize(new Dimension(300, 20));
             progressBar.setValue(Integer.parseInt(list.getCount()));
             progressBar.setForeground(Utils.getColor(Double.parseDouble(list.getCount())));
             progressBar.setStringPainted(true);
             progressBar.setString(list.getCount());
-            detailsInScroll.add(label, gbcLabel);
-            detailsInScroll.add(progressBar, gbcProgressBar);
+            if (Objects.equals(list.getGacha_type(), "常驻池")) {
+                js = normalPane;
+            } else if (Objects.equals(list.getGacha_type(), "角色池")) {
+                js = upPane;
+            } else if (Objects.equals(list.getGacha_type(), "武器池")) {
+                js = weaponPane;
+            }
+            assert js != null;
+            js.add(label, gbcLabel);
+            js.add(progressBar, gbcProgressBar);
             i++;
         }
     }
@@ -369,7 +401,7 @@ public class MainWindow {
         SecondFromMainTeb.setOpaque(false);
         SecondFromMainTeb.setTabPlacement(2);
         SecondFromMainTeb.setVisible(true);
-        Search.add(SecondFromMainTeb, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(459, 543), null, 0, false));
+        Search.add(SecondFromMainTeb, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(950, 650), null, 0, false));
         general = new JPanel();
         general.setLayout(new GridLayoutManager(8, 3, new Insets(0, 0, 0, 0), -1, -1));
         SecondFromMainTeb.addTab("总览", general);
@@ -431,6 +463,15 @@ public class MainWindow {
         details = new JPanel();
         details.setLayout(new GridLayoutManager(1, 1, new Insets(0, 0, 0, 0), -1, -1));
         SecondFromMainTeb.addTab("详情", details);
+        Pools = new JTabbedPane();
+        Pools.setTabLayoutPolicy(0);
+        details.add(Pools, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, new Dimension(200, 200), null, 0, false));
+        normalPoolPane = new JScrollPane();
+        Pools.addTab("常驻池", normalPoolPane);
+        upPoolPane = new JScrollPane();
+        Pools.addTab("角色池", upPoolPane);
+        weaponPoolPane = new JScrollPane();
+        Pools.addTab("武器池", weaponPoolPane);
         StartButton = new JButton();
         StartButton.setAutoscrolls(false);
         Font StartButtonFont = this.$$$getFont$$$(null, -1, -1, StartButton.getFont());
