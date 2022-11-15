@@ -38,10 +38,11 @@ public class WriteTest {
         HorizontalCellStyleStrategy horizontalCellStyleStrategy = new HorizontalCellStyleStrategy(headWriteCellStyle, contentWriteCellStyleList);
         try (ExcelWriter excelWriter = EasyExcel.write(fileName, DemoData.class).registerWriteHandler(horizontalCellStyleStrategy).build()) {
             //如果是同一个sheet只要创建一次
+            WriteSheet writeSheet100 = EasyExcel.writerSheet("新手池").build();
             WriteSheet writeSheet200 = EasyExcel.writerSheet("常驻池").build();
             WriteSheet writeSheet301 = EasyExcel.writerSheet("角色池").build();
             WriteSheet writeSheet302 = EasyExcel.writerSheet("武器池").build();
-            List<WriteSheet> writeSheets = ListUtils.newArrayList(writeSheet200, writeSheet301, writeSheet302);
+            List<WriteSheet> writeSheets = ListUtils.newArrayList(writeSheet100,writeSheet200, writeSheet301, writeSheet302);
             //调用写入
             int i = 0;
             //传入值为3个list，每个list保存入不同的sheet
@@ -52,8 +53,6 @@ public class WriteTest {
                         List<DemoData> data = data(itemEntities);
                         excelWriter.write(data, sheets);
                     }
-                } else {
-                    continue; //list.size() = 0,写入时会报错，所以直接跳过
                 }
                 i++;
             }

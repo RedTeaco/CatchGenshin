@@ -3,7 +3,10 @@ package org.redtea.Utils;
 import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
 import java.awt.*;
+import java.io.File;
 import java.util.Enumeration;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Utils {
     //使眼色从绿变为红
@@ -33,5 +36,15 @@ public class Utils {
                 UIManager.put(key, fontRes);
             }
         }
+    }
+
+    public static String getPath(){
+        File file = new File("");
+        return file.getAbsolutePath();
+    }
+
+    public static boolean isInteger(String str){
+        Pattern pattern = Pattern.compile("^[-\\+]?[\\d]*$");
+        return pattern.matcher(str).matches();
     }
 }
