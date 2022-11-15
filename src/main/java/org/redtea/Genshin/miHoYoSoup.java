@@ -207,7 +207,7 @@ public class miHoYoSoup {
                 end_id = itemEntityList.get(itemEntityList.size() - 1).getId();
                 try {
                     //每个查询间隔一段时间
-                    Thread.sleep(300);
+                    Thread.sleep(250);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -225,16 +225,17 @@ public class miHoYoSoup {
         List<ItemEntity> resultList = new ArrayList<>();
         counts = new ArrayList<>();
         //首先取出四个卡池的信息
-        List<ItemEntity> pool1 = ItemEntityMap.get("100");
+        List<ItemEntity> pool1_new = ItemEntityMap.get("100");
         List<ItemEntity> pool2_new = ItemEntityMap.get("200");
         List<ItemEntity> pool3_new = ItemEntityMap.get("301");
         List<ItemEntity> pool4_new = ItemEntityMap.get("302");
         //pool2: list中的每一个数据都是ItemEntity
         //将时间顺序改为从先到后
-        Collections.reverse(pool1);
+        Collections.reverse(pool1_new);
         Collections.reverse(pool2_new);
         Collections.reverse(pool3_new);
         Collections.reverse(pool4_new);
+        List<ItemEntity> pool1;
         List<ItemEntity> pool2;
         List<ItemEntity> pool3;
         List<ItemEntity> pool4;
@@ -244,13 +245,16 @@ public class miHoYoSoup {
         File data_excel = new File(filename);
         if (data_excel.exists()) {
             Map<String, List<ItemEntity>> old_map = readData(filename);
+            List<ItemEntity> pool1_old = old_map.get("100");
             List<ItemEntity> pool2_old = old_map.get("200");
             List<ItemEntity> pool3_old = old_map.get("301");
             List<ItemEntity> pool4_old = old_map.get("302");
+            pool1 = get_collects(pool1_old, pool1_new);
             pool2 = get_collects(pool2_old, pool2_new);
             pool3 = get_collects(pool3_old, pool3_new);
             pool4 = get_collects(pool4_old, pool4_new);
         } else {
+            pool1 = pool1_new;
             pool2 = pool2_new;
             pool3 = pool3_new;
             pool4 = pool4_new;

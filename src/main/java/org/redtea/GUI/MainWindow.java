@@ -10,6 +10,7 @@ import org.redtea.Genshin.addLogs;
 import org.redtea.Genshin.miHoYoCounts;
 import org.redtea.Genshin.miHoYoSoup;
 import org.redtea.Threads.WorkThread;
+import org.redtea.Utils.NameFilter;
 import org.redtea.Utils.Utils;
 import org.redtea.resourceUpdate.Main;
 import org.redtea.resourceUpdate.resourcesCounts;
@@ -18,15 +19,13 @@ import javax.swing.*;
 import javax.swing.plaf.FontUIResource;
 import javax.swing.text.StyleContext;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.*;
 
 public class MainWindow {
-    private static List<ItemEntity> itemEntityList;
     private JPanel root;
     private JTabbedPane MainTab;
     private JTabbedPane SecondFromMainTeb;
@@ -58,8 +57,10 @@ public class MainWindow {
     private JScrollPane normalPoolPane;
     private JScrollPane upPoolPane;
     private JScrollPane weaponPoolPane;
+    private JScrollPane runoobPoolPane;
+    private JButton excelButton;
     private JPanel normalPane;
-
+    private JPanel runoobPane;
     private JPanel upPane;
     private JPanel weaponPane;
     private int[] ints;
@@ -77,105 +78,105 @@ public class MainWindow {
 
     //事件监听器
     public MainWindow() {
-        StartButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new Thread(() -> {
-                    StartButton.setEnabled(false);
+        StartButton.addActionListener(e -> new Thread(() -> {
+            StartButton.setEnabled(false);
 
-                    Thread workThread = new WorkThread(StartProgress, 140, new miHoYoCounts());
-                    workThread.start();
+            Thread workThread = new WorkThread(StartProgress, 140, new miHoYoCounts());
+            workThread.start();
 
-                    miHoYoSoup miHoYoSoup = new miHoYoSoup();
-                    miHoYoSoup.miHoYoSoupGetLogs(GetURL);
-                    if (GetURL) {
-                        miHoYoSoup.miHoYoSoupGetLogs(true);
-                    }
-                    setInts(miHoYoSoup.getResultIntList());
-                    String uid;
-                    try {
-                        uid = miHoYoSoup.getResultList().get(0).getUid();
-                    } catch (
-                            NullPointerException e1) {
-                        workThread.interrupt();
-                        StartButton.setEnabled(true);
-                        JOptionPane.showMessageDialog(null, "当前url已过期，请点击游戏中的历史记录后重试...", "出现错误!", JOptionPane.ERROR_MESSAGE);
-                        return;
-                    }
-                    try {
-                        addLogs addLogs = new addLogs(uid);
-                        List<ItemEntity> list = addLogs.getLogData();
-                        setFifthStarList(miHoYoSoup.get_collects(list, miHoYoSoup.getResultList()));
-                    } catch (
-                            Exception e1) {
-                        setFifthStarList(miHoYoSoup.getResultList());
-                    }
-
-                    fifth = getInts()[5];
-                    fourth = getInts()[4];
-                    total = getInts()[0];
-                    character = getInts()[1];
-                    weapon = getInts()[2];
-
-                    addLabelDetails(getFifthStarList());
-
-                    totalNum.setValue(100);
-                    totalNum.setString(String.valueOf(total));
-                    totalNum.setStringPainted(true);
-
-                    int weaponNumValue = (int) ((double) weapon / total * 100);
-                    weaponNum.setValue(weaponNumValue);
-                    weaponNum.setString(String.valueOf(weapon));
-                    weaponNum.setStringPainted(true);
-
-                    int characterNumValue = (int) ((double) character / total * 100);
-                    characterNum.setValue(characterNumValue);
-                    characterNum.setString(String.valueOf(character));
-                    characterNum.setStringPainted(true);
-
-                    int fifthStarNumValue = (int) ((double) fifth / total * 100);
-                    fifthStarNum.setValue(fifthStarNumValue);
-                    fifthStarNum.setString(String.valueOf(fifth));
-                    fifthStarNum.setStringPainted(true);
-
-                    int forthStarNumValue = (int) ((double) fourth / total * 100);
-                    forthStarNum.setValue(forthStarNumValue);
-                    forthStarNum.setString(String.valueOf(fourth));
-                    forthStarNum.setStringPainted(true);
-
-                    String normalPoolNum = miHoYoSoup.getCounts().get(1);
-                    int normalPoolValue = Integer.parseInt(normalPoolNum);
-                    normalPool.setValue(normalPoolValue);
-                    normalPool.setString(normalPoolNum);
-                    normalPool.setStringPainted(true);
-
-                    String UPPoolNum = miHoYoSoup.getCounts().get(2);
-                    int characterPoolValue = Integer.parseInt(UPPoolNum);
-                    UPPool.setValue(characterPoolValue);
-                    UPPool.setString(UPPoolNum);
-                    UPPool.setStringPainted(true);
-
-                    String weaponPoolNum = miHoYoSoup.getCounts().get(3);
-                    int weaponPoolValue = Integer.parseInt(weaponPoolNum);
-                    weaponPool.setValue(weaponPoolValue);
-                    weaponPool.setString(weaponPoolNum);
-                    weaponPool.setStringPainted(true);
-/*                    general.repaint();
-                    details.repaint();*/
-                    SecondFromMainTeb.repaint();
-                    StartButton.setEnabled(true);
-                    SecondFromMainTeb.setSelectedIndex(0);
-                    workThread.interrupt();
-                }, "progressbar").start();
+            miHoYoSoup miHoYoSoup = new miHoYoSoup();
+            miHoYoSoup.miHoYoSoupGetLogs(GetURL);
+            if (GetURL) {
+                miHoYoSoup.miHoYoSoupGetLogs(true);
             }
-        });
+            setInts(miHoYoSoup.getResultIntList());
+            String uid;
+            try {
+                uid = miHoYoSoup.getResultList().get(0).getUid();
+            } catch (
+                    NullPointerException e1) {
+                workThread.interrupt();
+                StartButton.setEnabled(true);
+                JOptionPane.showMessageDialog(null, "当前url已过期，请点击游戏中的历史记录后重试...", "出现错误!", JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            try {
+                addLogs addLogs = new addLogs(uid);
+                List<ItemEntity> list = addLogs.getLogData();
+                setFifthStarList(miHoYoSoup.get_collects(list, miHoYoSoup.getResultList()));
+            } catch (
+                    Exception e1) {
+                setFifthStarList(miHoYoSoup.getResultList());
+            }
 
-        SubmitButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
+            fifth = getInts()[5];
+            fourth = getInts()[4];
+            total = getInts()[0];
+            character = getInts()[1];
+            weapon = getInts()[2];
+
+            addLabelDetails(getFifthStarList());
+
+            totalNum.setValue(100);
+            totalNum.setString(String.valueOf(total));
+            totalNum.setStringPainted(true);
+
+            int weaponNumValue = (int) ((double) weapon / total * 100);
+            weaponNum.setValue(weaponNumValue);
+            weaponNum.setString(String.valueOf(weapon));
+            weaponNum.setStringPainted(true);
+
+            int characterNumValue = (int) ((double) character / total * 100);
+            characterNum.setValue(characterNumValue);
+            characterNum.setString(String.valueOf(character));
+            characterNum.setStringPainted(true);
+
+            int fifthStarNumValue = (int) ((double) fifth / total * 100);
+            fifthStarNum.setValue(fifthStarNumValue);
+            fifthStarNum.setString(String.valueOf(fifth));
+            fifthStarNum.setStringPainted(true);
+
+            int forthStarNumValue = (int) ((double) fourth / total * 100);
+            forthStarNum.setValue(forthStarNumValue);
+            forthStarNum.setString(String.valueOf(fourth));
+            forthStarNum.setStringPainted(true);
+
+            String normalPoolNum = miHoYoSoup.getCounts().get(1);
+            int normalPoolValue = Integer.parseInt(normalPoolNum);
+            normalPool.setValue(normalPoolValue);
+            normalPool.setString(normalPoolNum);
+            normalPool.setStringPainted(true);
+
+            String UPPoolNum = miHoYoSoup.getCounts().get(2);
+            int characterPoolValue = Integer.parseInt(UPPoolNum);
+            UPPool.setValue(characterPoolValue);
+            UPPool.setString(UPPoolNum);
+            UPPool.setStringPainted(true);
+
+            String weaponPoolNum = miHoYoSoup.getCounts().get(3);
+            int weaponPoolValue = Integer.parseInt(weaponPoolNum);
+            weaponPool.setValue(weaponPoolValue);
+            weaponPool.setString(weaponPoolNum);
+            weaponPool.setStringPainted(true);
+            SecondFromMainTeb.repaint();
+            StartButton.setEnabled(true);
+            SecondFromMainTeb.setSelectedIndex(0);
+            workThread.interrupt();
+        }, "progressbar").start());
+
+        SubmitButton.addActionListener(e -> {
+            if (Objects.equals(CountTextField.getText(), "") || Objects.equals(nameTextField.getText(), "")) {
+                JOptionPane.showMessageDialog(null, "物品名和抽卡数不能为空", "输入错误", JOptionPane.WARNING_MESSAGE);
+            } else {
+                SubmitButton.setEnabled(false);
                 String uid;
                 if (uidTextField.getText().equals("")) {
-                    uid = getFifthStarList().get(0).getUid();
+                    try {
+                        uid = getFifthStarList().get(0).getUid();
+                    } catch (NullPointerException e1) {
+                        JOptionPane.showMessageDialog(null, "您输入的uid为空", "警告", JOptionPane.WARNING_MESSAGE);
+                        return;
+                    }
                 } else {
                     uid = uidTextField.getText();
                 }
@@ -203,34 +204,40 @@ public class MainWindow {
                         gacha_type, time, "", "zh-cn", rank_type);
                 List<ItemEntity> ls = new ArrayList<>();
                 ls.add(itemEntity);
-                setItemEntityList(ls);
                 addLogs addLogs = new addLogs(itemEntity);
                 addLogs.mainMethod();
+                SubmitButton.setEnabled(true);
             }
         });
 
-        resourcesUpdateButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                new Thread(() -> {
-                    resourcesUpdateButton.setEnabled(false);
-                    Thread workThread = new WorkThread(StartProgress, 50, new resourcesCounts());
-                    workThread.start();
-                    Main.start();
-                    resourcesUpdateButton.setEnabled(true);
-                    workThread.interrupt();
-                }).start();
+        resourcesUpdateButton.addActionListener(e -> new Thread(() -> {
+            resourcesUpdateButton.setEnabled(false);
+            Thread workThread = new WorkThread(StartProgress, 50, new resourcesCounts());
+            workThread.start();
+            Main.start();
+            resourcesUpdateButton.setEnabled(true);
+            workThread.interrupt();
+        }).start());
+
+        excelButton.addActionListener(e -> {
+            File file = new File(Utils.getPath());
+            NameFilter nameFilter = new NameFilter(".xlsx");
+            File[] files = file.listFiles(nameFilter);
+            String excelFile;
+            if (files != null) {
+                for (File getFile : files) {
+                    excelFile = getFile.getName();
+                    String name = excelFile.split(".xlsx")[0];
+                    if (Utils.isInteger(name)) {
+                        try {
+                            Runtime.getRuntime().exec("cmd /c start ./" + excelFile);
+                        } catch (IOException ignored) {
+
+                        }
+                    }
+                }
             }
         });
-    }
-
-
-    public static List<ItemEntity> getItemEntityList() {
-        return itemEntityList;
-    }
-
-    public static void setItemEntityList(List<ItemEntity> itemEntityList) {
-        MainWindow.itemEntityList = itemEntityList;
     }
 
     public static void main(String[] args) {
@@ -246,6 +253,7 @@ public class MainWindow {
         mainWindow.StartButton.setFont(ButtonFont);
         mainWindow.SubmitButton.setFont(ButtonFont);
         mainWindow.resourcesUpdateButton.setFont(ButtonFont);
+        mainWindow.excelButton.setFont(ButtonFont);
         mainWindow.setUI();
     }
 
@@ -266,10 +274,6 @@ public class MainWindow {
         this.fifthStarList = fifthStarList;
     }
 
-    public static boolean isGetURL() {
-        return GetURL;
-    }
-
     public static void setGetURL(boolean getURL) {
         GetURL = getURL;
     }
@@ -278,11 +282,11 @@ public class MainWindow {
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         Point p = ge.getCenterPoint();
         JFrame frame = new JFrame("原神抽卡记录");
-        JScrollPane js = null;
+        JScrollPane js;
         details.setLayout(new GridLayout());
         details.setVisible(true);
         String name;
-        for (int i = 0; i < 3; i++) {
+        for (int i = 0; i < 4; i++) {
             if (i == 0) {
                 js = normalPoolPane;
                 name = "常驻池";
@@ -293,11 +297,15 @@ public class MainWindow {
                 name = "角色池";
                 upPane = new JPanel(new GridBagLayout());
                 js.setViewportView(upPane);
-            } else {
+            } else if (i == 2) {
                 js = weaponPoolPane;
                 name = "武器池";
                 weaponPane = new JPanel(new GridBagLayout());
                 js.setViewportView(weaponPane);
+            } else {
+                js = runoobPoolPane;
+                name = "新手池";
+                runoobPane = new JPanel(new GridBagLayout());
             }
             js.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
@@ -306,7 +314,6 @@ public class MainWindow {
             //设置details的布局管理器
             Pools.add(name, js);
             js.setVisible(true);
-            //js.setViewportView(detailsInScroll);
             js.getVerticalScrollBar().setUnitIncrement(16);
         }
         //设置总览的布局管理器等
@@ -345,6 +352,8 @@ public class MainWindow {
             progressBar.setString(list.getCount());
             if (Objects.equals(list.getGacha_type(), "常驻池")) {
                 js = normalPane;
+            } else if (Objects.equals(list.getGacha_type(), "新手池")) {
+                js = runoobPane;
             } else if (Objects.equals(list.getGacha_type(), "角色池")) {
                 js = upPane;
             } else if (Objects.equals(list.getGacha_type(), "武器池")) {
@@ -472,6 +481,8 @@ public class MainWindow {
         Pools.addTab("角色池", upPoolPane);
         weaponPoolPane = new JScrollPane();
         Pools.addTab("武器池", weaponPoolPane);
+        runoobPoolPane = new JScrollPane();
+        Pools.addTab("新手池", runoobPoolPane);
         StartButton = new JButton();
         StartButton.setAutoscrolls(false);
         Font StartButtonFont = this.$$$getFont$$$(null, -1, -1, StartButton.getFont());
@@ -479,16 +490,22 @@ public class MainWindow {
         StartButton.setHorizontalTextPosition(11);
         StartButton.setText("开始查询");
         Search.add(StartButton, new GridConstraints(3, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
-        resourcesUpdateButton = new JButton();
-        Font resourcesUpdateButtonFont = this.$$$getFont$$$(null, -1, -1, resourcesUpdateButton.getFont());
-        if (resourcesUpdateButtonFont != null) resourcesUpdateButton.setFont(resourcesUpdateButtonFont);
-        resourcesUpdateButton.setText("资源更新");
-        Search.add(resourcesUpdateButton, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         StartProgress = new JProgressBar();
         StartProgress.setBorderPainted(false);
         StartProgress.setFocusable(false);
         StartProgress.setMaximum(100);
         Search.add(StartProgress, new GridConstraints(1, 0, 1, 1, GridConstraints.ANCHOR_SOUTH, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_WANT_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        final JPanel panel2 = new JPanel();
+        panel2.setLayout(new GridLayoutManager(1, 2, new Insets(0, 0, 0, 0), -1, -1));
+        Search.add(panel2, new GridConstraints(2, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_BOTH, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, null, null, null, 0, false));
+        resourcesUpdateButton = new JButton();
+        Font resourcesUpdateButtonFont = this.$$$getFont$$$(null, -1, -1, resourcesUpdateButton.getFont());
+        if (resourcesUpdateButtonFont != null) resourcesUpdateButton.setFont(resourcesUpdateButtonFont);
+        resourcesUpdateButton.setText("资源更新");
+        panel2.add(resourcesUpdateButton, new GridConstraints(0, 0, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
+        excelButton = new JButton();
+        excelButton.setText("打开详情表...");
+        panel2.add(excelButton, new GridConstraints(0, 1, 1, 1, GridConstraints.ANCHOR_CENTER, GridConstraints.FILL_HORIZONTAL, GridConstraints.SIZEPOLICY_CAN_SHRINK | GridConstraints.SIZEPOLICY_CAN_GROW, GridConstraints.SIZEPOLICY_FIXED, null, null, null, 0, false));
         AddLogs = new JPanel();
         AddLogs.setLayout(new GridLayoutManager(7, 4, new Insets(0, 0, 0, 0), -1, -1));
         AddLogs.setOpaque(false);

@@ -13,15 +13,26 @@ import java.util.Map;
 public class readFromExcel {
 
     public static Map<String, List<ItemEntity>> readData(String filename) {
-        List<ItemEntity> pool1 = new ArrayList<>();
-        List<ItemEntity> pool2 = new ArrayList<>();
-        List<ItemEntity> pool3 = new ArrayList<>();
+        List<ItemEntity> pool100 = new ArrayList<>();
+        List<ItemEntity> pool200 = new ArrayList<>();
+        List<ItemEntity> pool301 = new ArrayList<>();
+        List<ItemEntity> pool302 = new ArrayList<>();
         Map<String, List<ItemEntity>> map = new LinkedHashMap<>();
         //分别读取三个表中的数据并存入三个list中
         EasyExcel.read(filename, ItemEntity.class, new AnalysisEventListener<ItemEntity>() {
             @Override
             public void invoke(ItemEntity data, AnalysisContext analysisContext) {
-                pool1.add(data);
+                pool100.add(data);
+            }
+
+            @Override
+            public void doAfterAllAnalysed(AnalysisContext analysisContext) {
+            }
+        }).sheet("新手池").doRead();
+        EasyExcel.read(filename, ItemEntity.class, new AnalysisEventListener<ItemEntity>() {
+            @Override
+            public void invoke(ItemEntity data, AnalysisContext analysisContext) {
+                pool200.add(data);
             }
 
             @Override
@@ -31,7 +42,7 @@ public class readFromExcel {
         EasyExcel.read(filename, ItemEntity.class, new AnalysisEventListener<ItemEntity>() {
             @Override
             public void invoke(ItemEntity data, AnalysisContext analysisContext) {
-                pool2.add(data);
+                pool301.add(data);
             }
 
             @Override
@@ -41,16 +52,17 @@ public class readFromExcel {
         EasyExcel.read(filename, ItemEntity.class, new AnalysisEventListener<ItemEntity>() {
             @Override
             public void invoke(ItemEntity data, AnalysisContext analysisContext) {
-                pool3.add(data);
+                pool302.add(data);
             }
 
             @Override
             public void doAfterAllAnalysed(AnalysisContext analysisContext) {
             }
         }).sheet("武器池").doRead();
-        map.put("200", pool1);
-        map.put("301", pool2);
-        map.put("302", pool3);
+        map.put("100", pool100);
+        map.put("200", pool200);
+        map.put("301", pool301);
+        map.put("302", pool302);
         return map;
     }
 
